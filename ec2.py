@@ -17,11 +17,6 @@ different path to ec2.ini, define the EC2_INI_PATH environment variable:
 
     export EC2_INI_PATH=/path/to/my_ec2.ini
 
-If you're using eucalyptus you need to set the above variables and
-you need to define:
-
-    export EC2_URL=http://hostname_of_your_cc:port/services/Eucalyptus
-
 If you're using boto profiles (requires boto>=2.24.0) you can choose a profile
 using the --boto-profile command line argument (e.g. ec2.py --boto-profile prod) or using
 the AWS_PROFILE variable:
@@ -214,25 +209,14 @@ class Ec2Inventory(object):
         ec2_ini_path = os.path.expanduser(os.path.expandvars(os.environ.get('EC2_INI_PATH', ec2_default_ini_path)))
         config.read(ec2_ini_path)
 
-        # is eucalyptus?
-        self.eucalyptus_host = None
-        self.eucalyptus = False
-        if config.has_option('ec2', 'eucalyptus'):
-            self.eucalyptus = config.getboolean('ec2', 'eucalyptus')
-        if self.eucalyptus and config.has_option('ec2', 'eucalyptus_host'):
-            self.eucalyptus_host = config.get('ec2', 'eucalyptus_host')
-
         # Regions
         self.regions = []
         configRegions = config.get('ec2', 'regions')
         configRegions_exclude = config.get('ec2', 'regions_exclude')
         if (configRegions == 'all'):
-            if self.eucalyptus_host:
-                self.regions.append(boto.connect_euca(host=self.eucalyptus_host).region.name, **self.credentials)
-            else:
-                for regionInfo in ec2.regions():
-                    if regionInfo.name not in configRegions_exclude:
-                        self.regions.append(regionInfo.name)
+            for regionInfo in ec2.regions():
+                if regionInfo.name not in configRegions_exclude:
+                    self.regions.append(regionInfo.name)
         else:
             self.regions = configRegions.split(",")
 
@@ -480,11 +464,7 @@ class Ec2Inventory(object):
 
     def connect(self, region):
         ''' create connection to api server'''
-        if self.eucalyptus:
-            conn = boto.connect_euca(host=self.eucalyptus_host, **self.credentials)
-            conn.APIVersion = '2010-08-31'
-        else:
-            conn = self.connect_to_aws(ec2, region)
+        conn = self.connect_to_aws(ec2, region)
         return conn
 
     def boto_fix_security_token_in_profile(self, connect_args):
@@ -546,7 +526,7 @@ class Ec2Inventory(object):
             if e.error_code == 'AuthFailure':
                 error = self.get_auth_error_message()
             else:
-                backend = 'Eucalyptus' if self.eucalyptus else 'AWS'
+                backend = 'AWS'
                 error = "Error connecting to %s backend.\n%s" % (backend, e.message)
             self.fail_with_error(error, 'getting EC2 instances')
 
