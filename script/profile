@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function profile {
-  local shome="${_ansible_inventory_home:-"$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"}"
+  local shome="${_inventory_home:-"$(cd -P -- "$(dirname -- "$BASH_SOURCE")/.." && pwd -P)"}"
   PATH="$shome/exec:$PATH"
 }
 
