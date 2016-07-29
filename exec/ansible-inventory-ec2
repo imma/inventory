@@ -217,6 +217,8 @@ class Ec2Inventory(object):
             for regionInfo in ec2.regions():
                 if regionInfo.name not in configRegions_exclude:
                     self.regions.append(regionInfo.name)
+        elif (configRegions == 'AWS_DEFAULT_REGION'):
+            self.regions = [ os.environ.get('AWS_DEFAULT_REGION') ]
         else:
             self.regions = configRegions.split(",")
 

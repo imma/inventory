@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+_shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+source "$_shome/script/profile"
+source "$_shome/vendor/virtualenv/bin/activate"
+
+export EC2_INI_PATH="$_shome/exec/ansible-inventory-ec2.ini"
+
+source sub-chain "$BASH_SOURCE" "$@"
