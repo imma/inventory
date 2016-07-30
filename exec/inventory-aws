@@ -1,34 +1,54 @@
 #!/usr/bin/env bash
 
-function main {
-  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
-  source "$shome/script/profile"
-
-  aws ec2 describe-instances | \
+function flatten {
     jq '
         def kv (k):
           if type == "array" then
-            []
+            . as $in | keys[] | "\(k)_\(.)" as $kk | $in[.] | kv($kk)
           elif type == "object" then
-            to_entries | map(["\(k)_\(.key)", .value])[]
+            to_entries | map(["\(k)_\(.key)", .value]) | .[]
           else
             [ k, . ]
           end;
 
-        .Reservations[].Instances | 
-        
-        map({
-          key: .PrivateIpAddress, 
-          value: 
-            (to_entries | 
-            map("\(.key)" as $k | .value | kv($k)) |
-            map(select(length > 0)) |
-            map({key: .[0], value: .[1]}) |
-            from_entries)
-        }) |
+        def flat:
+          to_entries | 
+          map("\(.key)" as $k | .value | kv($k)) |
+          map(select(length > 0)) |
+          map({key: .[0], value: .[1]}) |
+          from_entries;
 
-        {_meta: {hostvars: from_entries }}
-  '
+        map({ key: .PrivateIpAddress, value: flat }) | from_entries'
 }
+
+function flatten_again {
+    jq '
+        def kv (k):
+          if type == "array" then
+            . as $in | keys[] | "\(k)_\(.)" as $kk | $in[.] | kv($kk)
+          elif type == "object" then
+            to_entries | map(["\(k)_\(.key)", .value]) | .[]
+          else
+            [ k, . ]
+          end;
+
+        def flat:
+          to_entries | 
+          map("\(.key)" as $k | .value | kv($k)) |
+          map(select(length > 0)) |
+          map({key: .[0], value: .[1]}) |
+          from_entries;
+
+          
+        with_entries(.value |= flat)
+          '
+}
+function main {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+  source "$shome/script/profile"
+
+  aws ec2 describe-instances | jq '.Reservations[].Instances' | flatten | flatten_again | flatten_again
+}
+
 
 source sub-chain "$BASH_SOURCE" "$@"
