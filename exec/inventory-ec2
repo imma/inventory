@@ -629,10 +629,6 @@ class Ec2Inventory(object):
                 instance_vars["ec2_security_group_names"] = ','.join([str(i) for i in group_names])
             else:
                 pass
-                # TODO Product codes if someone finds them useful
-                #print key
-                #print type(value)
-                #print value
 
         return instance_vars
 
@@ -648,44 +644,8 @@ class Ec2Inventory(object):
 
             # Handle complex types
 
-            # Target: Memcached Cache Clusters
-            if key == 'ec2_configuration_endpoint' and value:
-                host_info['ec2_configuration_endpoint_address'] = value['Address']
-                host_info['ec2_configuration_endpoint_port'] = value['Port']
-
-            # Target: Cache Nodes and Redis Cache Clusters (single node)
-            if key == 'ec2_endpoint' and value:
-                host_info['ec2_endpoint_address'] = value['Address']
-                host_info['ec2_endpoint_port'] = value['Port']
-
-            # Target: Redis Replication Groups
-            if key == 'ec2_node_groups' and value:
-                host_info['ec2_endpoint_address'] = value[0]['PrimaryEndpoint']['Address']
-                host_info['ec2_endpoint_port'] = value[0]['PrimaryEndpoint']['Port']
-                replica_count = 0
-                for node in value[0]['NodeGroupMembers']:
-                    if node['CurrentRole'] == 'primary':
-                        host_info['ec2_primary_cluster_address'] = node['ReadEndpoint']['Address']
-                        host_info['ec2_primary_cluster_port'] = node['ReadEndpoint']['Port']
-                        host_info['ec2_primary_cluster_id'] = node['CacheClusterId']
-                    elif node['CurrentRole'] == 'replica':
-                        host_info['ec2_replica_cluster_address_'+ str(replica_count)] = node['ReadEndpoint']['Address']
-                        host_info['ec2_replica_cluster_port_'+ str(replica_count)] = node['ReadEndpoint']['Port']
-                        host_info['ec2_replica_cluster_id_'+ str(replica_count)] = node['CacheClusterId']
-                        replica_count += 1
-
-            # Target: Redis Replication Groups
-            if key == 'ec2_member_clusters' and value:
-                host_info['ec2_member_clusters'] = ','.join([str(i) for i in value])
-
-            # Target: All Cache Clusters
-            elif key == 'ec2_cache_parameter_group':
-                host_info["ec2_cache_node_ids_to_reboot"] = ','.join([str(i) for i in value['CacheNodeIdsToReboot']])
-                host_info['ec2_cache_parameter_group_name'] = value['CacheParameterGroupName']
-                host_info['ec2_cache_parameter_apply_status'] = value['ParameterApplyStatus']
-
             # Target: Almost everything
-            elif key == 'ec2_security_groups':
+            if key == 'ec2_security_groups':
 
                 # Skip if SecurityGroups is None
                 # (it is possible to have the key defined but no value in it).
