@@ -23,6 +23,8 @@ function flatten {
       map({key: .[0], value: .[1]}) |
       from_entries;
 
+    .Reservations[].Instances | 
+
     map(.Tag = reduce .Tags[] as $t ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value) | del(.Tags)) |
 
     map({ key: .PrivateIpAddress, value: . }) |
@@ -41,7 +43,7 @@ function main {
   local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
   source "$shome/script/profile"
 
-  aws ec2 describe-instances | jq '.Reservations[].Instances' | flatten | jq -S ''
+  aws ec2 describe-instances | flatten
 }
 
 
