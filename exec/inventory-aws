@@ -17,7 +17,7 @@ function flatten {
       end;
 
     def flat:
-      to_entries | 
+      to_entries |
       map("\(.key)" as $k | .value | kv($k)) |
       map(select(length > 0)) |
       map({key: .[0], value: .[1]}) |
@@ -30,12 +30,10 @@ function flatten {
     map({ key: .PrivateIpAddress, value: . }) |
 
     map(.value |= flat) | 
-
+    map(.value |= flat) | 
     map(.value |= flat) | 
 
-    map(.value |= flat) |
-
-    { _meta: { hostvars: from_entries } }
+    { _meta: { hostvars: sort_by(.key) | from_entries } }
   '
 }
 
