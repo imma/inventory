@@ -4,7 +4,12 @@ function flatten {
     jq '
         def kv (k):
           if type == "array" then
-            . as $in | keys[] | "\(k)_\(.)" as $kk | $in[.] | kv($kk)
+            . as $in | keys[] | 
+            if . == 0 then
+              $in[.] | kv(k)
+            else
+              "\(k)_\(.)" as $kk | $in[.] | kv($kk)
+            end
           elif type == "object" then
             to_entries | map(["\(k)_\(.key)", .value]) | .[]
           else
