@@ -4,7 +4,31 @@ function main {
   local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
   source "$shome/script/profile"
 
-  aws ec2 describe-instances | jq '.Reservations[].Instances | map({key: .PrivateIpAddress, value: with_entries(select(.value | type as $v | ["string", "boolean", "number"] | any($v == .))) }) | from_entries' | jq '{_meta: {hostvars: . }}'
+  aws ec2 describe-instances | \
+    jq '
+        def kv (k):
+          if type == "array" then
+            []
+          elif type == "object" then
+            to_entries | map(["\(k)_\(.key)", .value])[]
+          else
+            [ k, . ]
+          end;
+
+        .Reservations[].Instances | 
+        
+        map({
+          key: .PrivateIpAddress, 
+          value: 
+            (to_entries | 
+            map("\(.key)" as $k | .value | kv($k)) |
+            map(select(length > 0)) |
+            map({key: .[0], value: .[1]}) |
+            from_entries)
+        }) |
+
+        {_meta: {hostvars: from_entries }}
+  '
 }
 
 source sub-chain "$BASH_SOURCE" "$@"
