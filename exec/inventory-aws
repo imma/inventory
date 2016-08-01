@@ -23,7 +23,7 @@ function flatten {
       map({key: .[0], value: .[1]}) |
       from_entries;
 
-    .Reservations[].Instances | 
+    [ .Reservations[].Instances[] ] |
 
     map(select(.State.Name == "running")) | 
 
@@ -33,7 +33,7 @@ function flatten {
 
     map(.value |= flat) | 
     map(.value |= flat) | 
-    map(.value |= flat) | 
+    map(.value |= flat) |
 
     { _meta: { hostvars: from_entries } }
   '
