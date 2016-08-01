@@ -17,11 +17,9 @@ function flatten {
       end;
 
     def flat:
-      to_entries | sort_by(.key) |
       map("\(.key)" as $k | .value | kv($k)) |
       map(select(length > 0)) |
-      map({key: .[0], value: .[1]}) |
-      from_entries;
+      map({key: .[0], value: .[1]});
 
     [ .Reservations[].Instances[] ] |
 
@@ -31,9 +29,7 @@ function flatten {
 
     map({ key: .PrivateIpAddress, value: . }) |
 
-    map(.value |= flat) | 
-    map(.value |= flat) | 
-    map(.value |= flat) |
+    map(.value |= (to_entries | sort_by(.key) | flat | flat | flat | from_entries)) | 
 
     { _meta: { hostvars: from_entries } }
   '
