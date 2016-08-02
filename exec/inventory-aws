@@ -21,7 +21,9 @@ function flatten {
       map(select(length > 0)) |
       map({key: .[0], value: .[1]});
 
-    .Reservations[].Instances | 
+    [ .Reservations[].Instances[] ] |
+
+    map(select(.State.Name == "running")) | 
 
     map(.Tag = reduce .Tags[] as $t ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value) | del(.Tags)) |
 
