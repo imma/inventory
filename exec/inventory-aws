@@ -27,7 +27,7 @@ function flatten {
 
     map(.Tag = reduce .Tags[] as $t ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value) | del(.Tags)) |
 
-    map({ key: .PrivateIpAddress, value: . }) |
+    map({ key: .PublicIpAddress, value: . }) |
 
     map(.value |= (to_entries | sort_by(.key) | flat | flat | flat | from_entries)) | 
 

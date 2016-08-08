@@ -1,6 +1,5 @@
 {
   "require": [
-    "aws",
     "ansible",
     "aqq"
   ]
