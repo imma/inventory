@@ -25,7 +25,7 @@ function flatten {
 
     map(select(.State.Name == "running")) | 
 
-    map(.Tag = reduce .Tags[] as $t ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value) | del(.Tags)) |
+    map(.Tag = reduce (.Tags//[])[] as $t ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value) | del(.Tags)) |
 
     map({ key: .PublicIpAddress, value: . }) |
 
