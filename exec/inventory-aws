@@ -11,7 +11,7 @@ function flatten {
           "\(k)_\(.)" as $kk | $in[.] | kv($kk)
         end
       elif type == "object" then
-        to_entries | map(["\(k)_\(.key)", .value]) | .[]
+        to_entries | map(["\(k)_\(if k == "Tag" then .key | ascii_downcase else .key end)", .value]) | .[]
       else
         [ k, . ]
       end;
