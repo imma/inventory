@@ -23,6 +23,9 @@ def unique_tags:
 def instance_tag_value (all):
   unique_tags[] as $tag | all | map([.InstanceId, "\($tag)_\(.[$tag]//"_")" ]);
 
+def insert_hosts(hosts):
+  reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
+
 def into_ansible:
   # All instances in a flat list
   [ .Reservations[].Instances[] ] |
@@ -49,12 +52,12 @@ def into_ansible:
       { all: { hosts: keys } } +
 
       # Group by having a tag name
-      reduce unique_tags[] as $tag
-      ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].InstanceId]) +
+      insert_hosts(reduce unique_tags[] as $tag
+        ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].InstanceId])) +
 
       # Group by having a tag value
-      reduce instance_tag_value($all)[] as $itv
-      ({}; .[$itv[1]] |= . + [$itv[0]]) +
+      insert_hosts(reduce instance_tag_value($all)[] as $itv
+        ({}; .[$itv[1]] |= . + [$itv[0]])) +
 
       # Return the dynamic inventory
       {};
