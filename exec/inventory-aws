@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function flatten {
+function into_ansible {
   jq '
     def kv (k):
       if type == "array" then
@@ -68,8 +68,11 @@ function main {
   local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
   source "$shome/script/profile"
 
-  aws ec2 describe-instances | flatten
+  if [[ "$#" == 0 ]]; then
+    aws ec2 describe-instances
+  else
+    "$@"
+  fi | into_ansible
 }
-
 
 source sub-chain "$BASH_SOURCE" "$@"
