@@ -21,7 +21,7 @@ def unique_tags:
   [ .[] | keys | map(select(startswith("Tags_")))[] ] | unique;
 
 def instance_tag_value (all):
-  unique_tags[] as $tag | all | map([.PrivateIpAddress, "\($tag)_\(.[$tag]//"_")" ]);
+  unique_tags[] as $tag | all | map([.PrivateIpAddress, "\($tag)-\(.[$tag]//"")" ]);
 
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
