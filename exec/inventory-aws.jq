@@ -30,16 +30,19 @@ def into_ansible:
   # All instances in a flat list
   [ .Reservations[].Instances[] ] |
 
-  # Only running instances
-  map(select(.State.Name == "running")) | 
-
-  # Only non-windows instances
-  map(select(.Platform != "windows")) | 
-
   # Tags list into a map
   map(.Tags |= 
     reduce (.//[])[] as $t 
       ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value)) |
+
+  # Only running instances
+  map(select(.State.Name == "running")) | 
+
+  # No windows instances
+  map(select(.Platform != "windows")) | 
+
+  # No EMR instances
+  map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
   # Remap instances by instance id, sorted keys in value
   map({ key: .PrivateIpAddress, 
