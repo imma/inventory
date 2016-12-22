@@ -33,6 +33,9 @@ def into_ansible:
   # Only running instances
   map(select(.State.Name == "running")) | 
 
+  # Only non-windows instances
+  map(select(.Platform != "windows")) | 
+
   # Tags list into a map
   map(.Tags |= 
     reduce (.//[])[] as $t 
