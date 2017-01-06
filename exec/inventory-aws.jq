@@ -26,6 +26,9 @@ def instance_tag_value (all):
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
 
+def flatten_hostvars:
+  to_entries | sort_by(.key) | flat | flat | flat | from_entries;
+
 def annotate_ssh:
   {
     ansible_user: (.Tags.ssh_user//"ubuntu"),
@@ -50,28 +53,29 @@ def into_ansible:
   # No EMR instances
   map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
-  # Remap instances by instance id, sorted keys in value
+  # Remap instances by private ip, sorted keys in value
   map({ key: .PrivateIpAddress, 
-        value: ((to_entries | sort_by(.key) | flat | flat | flat | from_entries) + annotate_ssh) }) | from_entries |
+        value: (flatten_hostvars + annotate_ssh) 
+      }) | from_entries |
 
-      # Save map
-      . as $all |
+  # Save map
+  . as $all |
 
-      # Start dynamic inventory with the metadata
-      { _meta: { hostvars: . } } +
+    # Start dynamic inventory with the metadata
+    { _meta: { hostvars: . } } +
 
-      # Group all the hosts
-      { all: { hosts: keys } } +
+    # Group all the hosts
+    { all: { hosts: keys } } +
 
-      # Group by having a tag name
-      insert_hosts(reduce unique_tags[] as $tag
-        ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].PrivateIpAddress])) +
+    # Group by having a tag name
+    insert_hosts(reduce unique_tags[] as $tag
+      ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].PrivateIpAddress])) +
 
-      # Group by having a tag value
-      insert_hosts(reduce instance_tag_value($all)[] as $itv
-        ({}; .[$itv[1]] |= . + [$itv[0]])) +
+    # Group by having a tag value
+    insert_hosts(reduce instance_tag_value($all)[] as $itv
+      ({}; .[$itv[1]] |= . + [$itv[0]])) +
 
-      # Return the dynamic inventory
-      {};
+    # Return the dynamic inventory
+    {};
 
 into_ansible
