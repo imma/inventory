@@ -28,8 +28,8 @@ def insert_hosts(hosts):
 
 def annotate_ssh:
   {
-    ansible_user: (.Tags_ssh_user//"ubuntu"),
-    ansible_port: (.Tags_ssh_port//"22")
+    ansible_user: (.Tags.ssh_user//"ubuntu"),
+    ansible_port: (.Tags.ssh_port//"22")
   };
 
 def into_ansible:
