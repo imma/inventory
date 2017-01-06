@@ -1,4 +1,4 @@
-def kv (k):
+def kv(k):
   if type == "array" then
     . as $in | keys[] | 
     if . == 0 then
@@ -26,14 +26,15 @@ def instance_tag_value (all):
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
 
+def annotate_ssh:
+  {
+    ansible_user: (.Tags_ssh_user//"ubuntu"),
+    ansible_port: (.Tags_ssh_port//"22")
+  };
+
 def into_ansible:
   # All instances in a flat list
   [ .Reservations[].Instances[] ] |
-
-  # Tags list into a map
-  map(.Tags |= 
-    reduce (.//[])[] as $t 
-      ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value)) |
 
   # Only running instances
   map(select(.State.Name == "running")) | 
@@ -41,15 +42,20 @@ def into_ansible:
   # No windows instances
   map(select(.Platform != "windows")) | 
 
+  # Tags list into a map
+  map(.Tags |= 
+    reduce (.//[])[] as $t 
+      ({}; .[$t.Key | gsub("[^\\w]"; "_")] = $t.Value)) |
+
   # No EMR instances
   map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
   # Remap instances by instance id, sorted keys in value
   map({ key: .PrivateIpAddress, 
-        value: (to_entries | sort_by(.key) | flat | flat | flat | from_entries) }) | from_entries |
+        value: ((to_entries | sort_by(.key) | flat | flat | flat | from_entries) + annotate_ssh) }) | from_entries |
 
       # Save map
-      . as $all | $all |
+      . as $all |
 
       # Start dynamic inventory with the metadata
       { _meta: { hostvars: . } } +
