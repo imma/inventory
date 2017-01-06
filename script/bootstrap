@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function main {
-  block compile virtualenv27
+  true
 }
 
 main "$@"
