@@ -1,6 +1,6 @@
 def into_ansible:
-  # Reduces nodes into a map indexed by addres
-  reduce .[] as $ele ({}; .["\($ele.Address)"] = $ele) |
+  # Reduces nodes into a map indexed by nodename.nih
+  reduce .[] as $ele ({}; .["\($ele.Node).nih"] = $ele) |
 
   . as $all |
 
