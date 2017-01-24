@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function into_ansible {
+  jq "$(cat "$shome/exec/inventory-consul.jq")"
+}
+
+function main {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+  source "$shome/script/profile"
+
+  curl -s http://localhost:8500/v1/catalog/nodes | into_ansible
+}
+
+source sub-chain "$BASH_SOURCE" "$@"
