@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function main {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+
+  local tmp_json="$(mktemp -d -t XXXXXX)"
+  trap "rm -rf \"$tmp_json\"" EXIT
+
+  export tmp_json
+  for a in "$@"; do
+    echo "$a" blue
+    echo "$a" green
+  done | runmany 5 2 'echo $1 $2 1>&2; (cd $1 && fogg $2 instances "\\(.)") > $tmp_json/${1//\//-}$2.log'
+  (set +f; cd "$tmp_json" && cat *.log) | jq -s . | inventory-aws -
+}
+
+main "$@"
