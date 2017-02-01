@@ -36,8 +36,7 @@ def annotate_ssh:
   };
 
 def into_ansible:
-  # All instances in a flat list
-  [ .Reservations[].Instances[] ] |
+  # Assumes input has slurped Reservations[].Instances[] into a single list
 
   # Only running instances
   map(select(.State.Name == "running")) | 

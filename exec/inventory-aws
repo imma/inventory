@@ -8,7 +8,11 @@ function main {
   local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
   source "$shome/script/profile"
 
-  aws ec2 describe-instances | into_ansible
+  if [[ "${1:-}" == - ]]; then
+    cat
+  else
+    aws ec2 describe-instances | jq '[ .Reservations[].Instances[] ]'
+  fi | into_ansible
 }
 
 source sub-chain "$BASH_SOURCE" "$@"
