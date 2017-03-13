@@ -30,7 +30,7 @@ def opt_dash(n):
   n | if . then "\(.)-" else empty end;
 
 def fqhostname:
-  "\(opt_dash(.Tags_env))\(opt_dash(.Tags_app)//opt_dash(.Tags_node))\(opt_dash(.Tags_service))\(.InstanceId)";
+  "\(opt_dash(.Tags_env))\(opt_dash(.Tags_app))\(opt_dash(.Tags_service))\(.InstanceId)";
 
 def flatten_hostvars:
   to_entries | sort_by(.key) | flat | flat | flat | from_entries;
@@ -40,6 +40,14 @@ def annotate_ssh:
     ansible_host: .PrivateIpAddress,
     ansible_user: (.Tags_ssh_user//"ubuntu"),
     ansible_port: (.Tags_ssh_port//"22")
+  };
+
+def annotate_deploy:
+  {
+    DeployName: fqhostname,
+    env: .Tags_env,
+    app: .Tags_app,
+    service: .Tags_service
   };
 
 def into_ansible:
@@ -60,8 +68,8 @@ def into_ansible:
   map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
   # Remap instances by private ip, sorted keys in value
-  map({ key: flatten_hostvars | fqhostname, 
-        value: (flatten_hostvars + annotate_ssh + {DeployName: flatten_hostvars | fqhostname}) 
+  map(flatten_hostvars | { key: fqhostname, 
+        value: (. + annotate_ssh + annotate_deploy)
       }) | from_entries |
 
   # Save map
