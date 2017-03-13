@@ -68,7 +68,7 @@ def into_ansible:
   map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
   # Remap instances by private ip, sorted keys in value
-  map(flatten_hostvars | { key: fqhostname, 
+  map(flatten_hostvars | { key: "\(fqhostname)-\(.PrivateIpAddress)",
         value: (. + annotate_ssh + annotate_deploy)
       }) | from_entries |
 
