@@ -71,10 +71,10 @@ def into_ansible:
     { _meta: { hostvars: . } } +
 
     # Group by InstanceId
-    reduce (to_entries)[] as $ele ({}; .[$ele.value.InstanceId] = { hosts: $ele.key}) +
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.InstanceId] = { hosts: [$ele.key]}) +
 
     # Group by PrivateIpAddress
-    reduce (to_entries)[] as $ele ({}; .[$ele.value.PrivateIpAddress] = { hosts: $ele.key}) +
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.PrivateIpAddress] = { hosts: [$ele.key]}) +
 
     # Group by having a tag name
     insert_hosts(reduce unique_tags[] as $tag
