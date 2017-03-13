@@ -26,13 +26,20 @@ def instance_tag_value (all):
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
 
+def opt_dash(n):
+  n | if . then "\(.)-" else empty end;
+
+def fqhostname:
+  "\(opt_dash(.Tags_env))\(opt_dash(.Tags_app)//opt_dash(.Tags_node))\(opt_dash(.Tags_service))\(.InstanceId)";
+
 def flatten_hostvars:
   to_entries | sort_by(.key) | flat | flat | flat | from_entries;
 
 def annotate_ssh:
   {
-    ansible_user: (.Tags.ssh_user//"ubuntu"),
-    ansible_port: (.Tags.ssh_port//"22")
+    ansible_host: .PrivateIpAddress,
+    ansible_user: (.Tags_ssh_user//"ubuntu"),
+    ansible_port: (.Tags_ssh_port//"22")
   };
 
 def into_ansible:
@@ -53,7 +60,7 @@ def into_ansible:
   map(select(.Tags | has("aws_elasticmapreduce_instance_group_role") | not)) | 
 
   # Remap instances by private ip, sorted keys in value
-  map({ key: .PrivateIpAddress, 
+  map({ key: flatten_hostvars | fqhostname, 
         value: (flatten_hostvars + annotate_ssh) 
       }) | from_entries |
 
@@ -63,8 +70,11 @@ def into_ansible:
     # Start dynamic inventory with the metadata
     { _meta: { hostvars: . } } +
 
-    # Group all the hosts
-    { all: { hosts: keys } } +
+    # Group by InstanceId
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.InstanceId] = { hosts: $ele.key}) +
+
+    # Group by PrivateIpAddress
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.PrivateIpAddress] = { hosts: $ele.key}) +
 
     # Group by having a tag name
     insert_hosts(reduce unique_tags[] as $tag
