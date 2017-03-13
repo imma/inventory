@@ -21,7 +21,7 @@ def unique_tags:
   [ .[] | keys | map(select(startswith("Tags_")))[] ] | unique;
 
 def instance_tag_value (all):
-  unique_tags[] as $tag | all | map([.PrivateIpAddress, "\($tag)-\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
+  unique_tags[] as $tag | all | map([.DeployName, "\($tag)-\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
 
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: $ele.value });
@@ -61,7 +61,7 @@ def into_ansible:
 
   # Remap instances by private ip, sorted keys in value
   map({ key: flatten_hostvars | fqhostname, 
-        value: (flatten_hostvars + annotate_ssh) 
+        value: (flatten_hostvars + annotate_ssh + {DeployName: flatten_hostvars | fqhostname}) 
       }) | from_entries |
 
   # Save map
@@ -78,7 +78,7 @@ def into_ansible:
 
     # Group by having a tag name
     insert_hosts(reduce unique_tags[] as $tag
-      ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].PrivateIpAddress])) +
+      ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].DeployName])) +
 
     # Group by having a tag value
     insert_hosts(reduce instance_tag_value($all)[] as $itv
