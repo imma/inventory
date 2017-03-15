@@ -30,7 +30,7 @@ def opt_dash(n):
   n | if . then "\(.)-" else empty end;
 
 def fqhostname:
-  "\(opt_dash(.Tags_env))\(opt_dash(.Tags_app))\(opt_dash(.Tags_service))\(.InstanceId)";
+  "\(opt_dash(.Tags_env)//"unknown")\(opt_dash(.Tags_app)//opt_dash(.Tags_node)//"")\(opt_dash(.Tags_service)//"")\(.InstanceId)";
 
 def flatten_hostvars:
   to_entries | sort_by(.key) | flat | flat | flat | from_entries;
