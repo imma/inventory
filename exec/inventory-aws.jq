@@ -45,6 +45,7 @@ def annotate_ssh:
 def annotate_deploy:
   {
     DeployName: "\(fqhostname)-\(.PrivateIpAddress)",
+    hostname: "\(fqhostname)",
     env: .Tags_env,
     app: .Tags_app,
     service: .Tags_service
