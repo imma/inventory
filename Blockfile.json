@@ -1,6 +1,5 @@
 {
   "require": [
-    "ansible",
-    "aqq"
+    "ansible"
   ]
 }
