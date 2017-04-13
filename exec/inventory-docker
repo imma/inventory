@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function into_ansible {
+  jq "$(cat "$shome/exec/inventory-docker.jq")"
+}
+
+function main {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+  source "$shome/script/profile"
+
+  local nm_network="ubuntu_default"
+
+  docker ps --format '{{.ID}}' | runmany 'docker inspect $1' | jq -r -s --arg network "$nm_network" '[ .[][] | { id: .Id, name: (.Name | sub("/"; "")), ansible_port: 2222, ansible_host: (.NetworkSettings.Networks | select(has($network)) | .[$network].IPAddress) } ]' | into_ansible
+}
+
+source sub-chain "$BASH_SOURCE" "$@"
