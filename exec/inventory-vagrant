@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function into_ansible {
+  jq "$(cat "$shome/exec/inventory-vagrant.jq")"
+}
+
+function into_json {
+  egrep '^ *(Host|HostName|User|Port) ' | awk '{print $1, $2}' | perl -pe 's{(\S+)\s+(\S+)}{"$1": "$2",}; s{^}{\{ } if m{Host.:}; s{,}{ \}} if m{Port}'  | jq -s 'reduce .[] as $v ({}; .[$v.Host] = $v)'
+}
+
+function main {
+  local shome="$(cd -P -- "${BASH_SOURCE%/*}/.." && pwd -P)"
+  source "$shome/script/profile"
+
+  vagrant ssh-config | into_json | into_ansible
+}
+
+source sub-chain "$BASH_SOURCE" "$@"
