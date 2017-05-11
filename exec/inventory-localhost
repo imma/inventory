@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function into_ansible {
-  jq -n "$(cat "$shome/exec/inventory-localhost.jq")"
+  jq -n --arg hostname "$(uname -n)" "$(cat "$shome/exec/inventory-localhost.jq")"
 }
 
 function main {

@@ -13,4 +13,4 @@ def into_ansible:
     # Return the dynamic inventory
     {};
 
-[ { Host: "localhost", User: "ubuntu", HostName: "localhost" } ] | into_ansible
+[ { Host: $hostname, User: "ubuntu", HostName: "localhost" } ] | into_ansible
