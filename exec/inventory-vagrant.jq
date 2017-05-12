@@ -10,7 +10,10 @@ def into_ansible:
     # Group all the hosts
     { all: { hosts: keys } } +
 
-    # Return the dynamic inventory
+    # Make a vagrant group
+    { vagrant: { hosts: keys } } +
+
+     # Return the dynamic inventory
     {};
 
 into_ansible
