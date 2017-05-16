@@ -85,6 +85,12 @@ def into_ansible:
     # Group by PrivateIpAddress
     reduce (to_entries)[] as $ele ({}; .[$ele.value.PrivateIpAddress] = { hosts: [$ele.key]}) +
 
+    # Group by DeployName 
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.DeployName] = { hosts: [$ele.key]}) +
+
+    # Group by hostname
+    reduce (to_entries)[] as $ele ({}; .[$ele.value.hostname] = { hosts: [$ele.key]}) +
+
     # Group by having a tag name
     insert_hosts(reduce unique_tags[] as $tag
       ({}; .[$tag] |= . + [$all | map(select(has($tag)))[].DeployName])) +
