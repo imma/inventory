@@ -10,6 +10,9 @@ def into_ansible:
     # Group all the hosts
     { all: { hosts: keys } } +
 
+    # Group all the hosts
+    { localhost_all: { hosts: keys } } +
+
     # Return the dynamic inventory
     {};
 
