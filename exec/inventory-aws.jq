@@ -48,7 +48,8 @@ def annotate_deploy:
     hostname: "\(fqhostname)",
     env: .Tags_env,
     app: .Tags_app,
-    service: .Tags_service
+    service: .Tags_service,
+    Tags_env_app_service: "\(.Tags_env)-\(.Tags_app)-\(.Tags_service)"
   };
 
 def into_ansible:
