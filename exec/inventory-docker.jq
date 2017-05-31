@@ -9,6 +9,9 @@ def into_ansible:
     # Group all the hosts
     { all: { hosts: keys } } +
 
+    # Make a docker group
+    { docker: { hosts: keys } } +
+
     # Return the dynamic inventory
     {};
 
