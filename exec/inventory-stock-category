@@ -8,7 +8,7 @@ function main {
   local nm_table="fogg_inventory"
   export cidr_network="$1"; shift
 
-  runmany 1 2 'echo inventory stock $1 cidr "$cidr_network" netbits $2 ' "$@"
+  runmany 1 2 'inventory stock $1 cidr "$cidr_network" netbits $2 ' "$@"
 }
 
 source sub "$BASH_SOURCE" "$@"
