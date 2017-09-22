@@ -1,0 +1,1 @@
+content/inventory.md
