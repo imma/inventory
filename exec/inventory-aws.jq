@@ -24,7 +24,7 @@ def instance_tag_value (all):
   unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag)_\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
 
 def instance_tag_value_simple (all):
-  unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag | gsub("^Tags_"; ""))_\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
+  unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag | gsub("^Tags_"; ""))-\(.[$tag]//"" | gsub("\\s+"; "-"))" ]);
 
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: ($ele.value | sort) });
