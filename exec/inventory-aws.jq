@@ -21,7 +21,10 @@ def unique_tags:
   [ .[] | keys | map(select(startswith("Tags_")))[] ] | unique;
 
 def instance_tag_value (all):
-  unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag)-\(.[$tag]//"" | gsub("\\s+"; "_"))"], [.DeployName, "\($tag)_\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
+  unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag)_\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
+
+def instance_tag_value_simple (all):
+  unique_tags[] as $tag | all | map(select((.[$tag]//"" != ""))) | map([.DeployName, "\($tag | gsub("^Tags_"; ""))_\(.[$tag]//"" | gsub("\\s+"; "_"))" ]);
 
 def insert_hosts(hosts):
   reduce (hosts | to_entries)[] as $ele ({}; .[$ele.key] = { hosts: ($ele.value | sort) });
@@ -95,6 +98,10 @@ def into_ansible:
 
     # Group by having a tag value
     insert_hosts(reduce instance_tag_value($all)[] as $itv
+      ({}; .[$itv[1]] |= . + [$itv[0]])) +
+
+    # Group by having a tag value without Tag_ prefix
+    insert_hosts(reduce instance_tag_value_simple($all)[] as $itv
       ({}; .[$itv[1]] |= . + [$itv[0]])) +
 
     # Return the dynamic inventory
